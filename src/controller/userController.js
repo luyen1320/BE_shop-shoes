@@ -41,11 +41,22 @@ const handleRegister = async (req, res) => {
   }
 };
 
-const handleLogin = () => {
-  return res.status(200).json({
-    errCode: 1,
-    errMessage: "OK",
-  });
+const handleLogin = async (req, res) => {
+  try {
+    let data = await userService.handleUserLogin(req.body);
+    return res.status(200).json({
+      errCode: data.errCode,
+      errMessage: data.errMessage,
+      DT: data.DT, //data
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      errCode: -1,
+      errMessage: "Lỗi máy chủ",
+      DT: "",
+    });
+  }
 };
 
 module.exports = {

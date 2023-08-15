@@ -1,5 +1,6 @@
 import db from "../models/index";
 import bcrypt from "bcryptjs";
+import { Op } from "sequelize";
 
 const salt = bcrypt.genSaltSync(10);
 
@@ -34,7 +35,7 @@ const hashUserPassword = (userPassword) => {
 //   });
 // };
 
-const checkEmail = async (userEmail) => {
+const checkEmailExist = async (userEmail) => {
   let user = await db.User.findOne({
     where: { email: userEmail },
   });
@@ -51,7 +52,7 @@ const registerNewUser = async (rawUserData) => {
   // return new Promise(async (resolve, reject) => {
   try {
     //check email are exist
-    let isEmailExist = await checkEmail(rawUserData.email);
+    let isEmailExist = await checkEmailExist(rawUserData.email);
     if (isEmailExist === true) {
       return {
         errCode: 1,
@@ -84,13 +85,58 @@ const registerNewUser = async (rawUserData) => {
   // });
 };
 
-const loginUser = () => {
-  
-}
+const checkPassword = (inputPassword, hashPassword) => {
+  return bcrypt.compareSync(inputPassword, hashPassword); // true or false
+};
+
+const handleUserLogin = async (rawData) => {
+  try {
+    let user = await db.User.findOne({
+      where: {
+        [Op.or]: [
+          { email: rawData.valueLogin },
+          { username: rawData.valueLogin },
+        ],
+      },
+    });
+
+    if (user) {
+      console.log(">>> found user with email/username");
+      let isCorrectPassword = checkPassword(rawData.password, user.password);
+      if (isCorrectPassword === true) {
+        console.log("check password");
+        return {
+          errCode: 0,
+          errMessage: "oke!",
+          DT: "", //data
+        };
+      }
+    }
+
+    console.log(
+      ">>> Not found user with email/username: ",
+      rawData.valueLogin,
+      "password:",
+      rawData.password
+    );
+    return {
+      errCode: 1,
+      errMessage: "Email hoặc mật khẩu không chính xác!",
+      DT: "", //data
+    };
+  } catch (error) {
+    return res.status(500).json({
+      errCode: -1,
+      errMessage: "Lỗi máy chủ",
+      DT: "",
+    });
+  }
+};
 
 module.exports = {
   // createNewUser: createNewUser,
   // getUserList: getUserList,
   // deleteUser: deleteUser,
   registerNewUser: registerNewUser,
+  handleUserLogin: handleUserLogin,
 };
