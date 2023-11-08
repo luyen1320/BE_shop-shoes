@@ -25,6 +25,9 @@ module.exports = {
       },
       roleId: {
         type: Sequelize.STRING,
+        validate: {
+          isIn: [["ADMIN", "STAFF", "USER", "SUPPLIER"]], // Ràng buộc CHECK
+        },
       },
       status: {
         type: Sequelize.STRING,
