@@ -8,6 +8,11 @@ const router = express.Router();
 
 const initWebRoutes = (app) => {
   router.post("/create-new-user", userController.handleRegister);
+  router.get("/getstaff", userController.getAllStaff);
+  router.get("/getuser", userController.getAllUser);
+  router.get("/getuser/:id", userController.getOneStaff);
+  router.delete("/user/:id", userController.deleteUser);
+  router.put("/user/update", userController.updateUser);
   router.post("/login", userController.handleLogin);
 
   router.get("/size", sizeController.readSize);

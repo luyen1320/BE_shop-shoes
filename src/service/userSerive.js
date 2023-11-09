@@ -137,10 +137,155 @@ const handleUserLogin = async (rawData) => {
   }
 };
 
+const getAllStaffService = async () => {
+  try {
+    let users = await db.User.findAll({
+      where: { roleId: "STAFF" },
+      attributes: {
+        exclude: ["password"],
+      },
+    });
+    if (users) {
+      return {
+        errCode: 0,
+        errMessage: "oke!",
+        DT: users, //data
+      };
+    }
+    return {
+      errCode: 1,
+      errMessage: "Không tìm thấy nhân viên!",
+      DT: "", //data
+    };
+  } catch (error) {
+    return {
+      errCode: -1,
+      errMessage: "Lỗi máy chủ",
+      DT: "",
+    };
+  }
+};
+
+const getAllUserService = async () => {
+  try {
+    let users = await db.User.findAll({
+      where: { roleId: "USER" },
+      attributes: {
+        exclude: ["password"],
+      },
+    });
+    if (users) {
+      return {
+        errCode: 0,
+        errMessage: "oke!",
+        DT: users, //data
+      };
+    }
+    return {
+      errCode: 1,
+      errMessage: "Không tìm thấy user!",
+      DT: "", //data
+    };
+  } catch (error) {
+    return {
+      errCode: -1,
+      errMessage: "Lỗi máy chủ",
+      DT: "",
+    };
+  }
+};
+
+const getOneStaffService = async (userId) => {
+  try {
+    let user = await db.User.findOne({
+      where: { id: userId },
+      attributes: {
+        exclude: ["password"],
+      },
+    });
+    if (user) {
+      return {
+        errCode: 0,
+        errMessage: "oke!",
+        DT: user, //data
+      };
+    }
+    return {
+      errCode: 1,
+      errMessage: "Không tìm thấy nhân viên!",
+      DT: "", //data
+    };
+  } catch (error) {
+    return {
+      errCode: -1,
+      errMessage: "Lỗi máy chủ",
+      DT: "",
+    };
+  }
+};
+
+const updateUserService = async (data) => {
+  try {
+    let user = await db.User.findOne({
+      where: { id: data.id },
+    });
+    if (!user) {
+      return res.status(500).json({
+        errCode: 1,
+        errMessage: "User not found",
+        DT: "",
+      });
+    }
+    await user.update(data);
+    return {
+      errCode: 0,
+      errMessage: "OK",
+      DT: data,
+    };
+  } catch (error) {
+    return {
+      errCode: -1,
+      errMessage: "Lỗi máy chủ",
+      DT: "",
+    };
+  }
+};
+
+const deleteUserService = async (userId) => {
+  try {
+    let user = await db.User.findOne({
+      where: { id: userId },
+    });
+    if (!user) {
+      return res.status(500).json({
+        errCode: 1,
+        errMessage: "User not found",
+        DT: "",
+      });
+    }
+    await user.destroy();
+    return {
+      errCode: 0,
+      errMessage: "OK",
+      DT: "",
+    };
+  } catch (error) {
+    return {
+      errCode: -1,
+      errMessage: "Lỗi máy chủ",
+      DT: "",
+    };
+  }
+};
 module.exports = {
   // createNewUser: createNewUser,
   // getUserList: getUserList,
   // deleteUser: deleteUser,
   registerNewUser: registerNewUser,
   handleUserLogin: handleUserLogin,
+  getAllStaffService: getAllStaffService,
+  getOneStaffService: getOneStaffService,
+  updateUserService: updateUserService,
+  deleteUserService: deleteUserService,
+  getAllUserService: getAllUserService,
 };
