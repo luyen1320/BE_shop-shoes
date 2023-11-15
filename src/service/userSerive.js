@@ -68,10 +68,10 @@ const registerNewUser = async (rawUserData) => {
       username: rawUserData.username,
       email: rawUserData.email,
       password: hashPassword,
-      phone: rawUserData.username || "",
+      phone: rawUserData.phone || "",
       address: rawUserData.address || "",
       roleId: rawUserData.roleId || "USER",
-      status: rawUserData.status || "ACTIVE",
+      status: rawUserData.status || "ONLINE",
     });
 
     return {

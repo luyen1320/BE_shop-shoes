@@ -3,6 +3,8 @@ import userController from "../controller/userController";
 import sizeController from "../controller/sizeController";
 import supplierController from "../controller/supplierController";
 import productController from "../controller/productController";
+import reviewController from "../controller/reviewController";
+import orderController from "../controller/orderController";
 
 const router = express.Router();
 
@@ -17,6 +19,13 @@ const initWebRoutes = (app) => {
 
   router.get("/size", sizeController.readSize);
 
+  //Order
+  router.post("/addtocart", orderController.addToCart);
+  router.get("/getproductincart/:id", orderController.getProductInCart);
+  router.post("/createOrder", orderController.createOrder);
+  router.get("/getallorder", orderController.getAllOrder);
+  router.put("/updateorder/:id", orderController.updateOrder);
+
   //product
   router.post("/product/create", productController.createProduct);
   router.put("/product/update", productController.updateProduct);
@@ -30,6 +39,9 @@ const initWebRoutes = (app) => {
   router.delete("/supplier/delete", supplierController.deleteSupp);
   router.put("/supplier/update", supplierController.updateSupp);
 
+  //review
+  router.get("/review", reviewController.getAllReview);
+  router.post("/review/create", reviewController.createReview);
   return app.use("/api/v1/", router);
 };
 

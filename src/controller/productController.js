@@ -23,7 +23,7 @@ const updateProduct = async (req, res) => {
     return res.status(500).json({
       errCode: "-1",
       errMessage: "OK",
-      DT: "", //data
+      DT: e, //data
     });
   }
 };

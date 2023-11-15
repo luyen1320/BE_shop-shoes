@@ -79,6 +79,7 @@ const createNewProduct = async (data) => {
 const updateProductService = async (data) => {
   try {
     const { productId, images, inventory, ...productData } = data;
+    console.log(productId);
     if (!productId) {
       return res.status(500).json({
         errCode: 1,
@@ -144,11 +145,11 @@ const updateProductService = async (data) => {
       errMessage: "OK",
       DT: product,
     };
-  } catch {
+  } catch (e) {
     return {
       errCode: -1,
       errMessage: "Lỗi máy chủ",
-      DT: "",
+      DT: e,
     };
   }
 };
