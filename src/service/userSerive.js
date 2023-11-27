@@ -109,10 +109,19 @@ const handleUserLogin = async (rawData) => {
       let isCorrectPassword = checkPassword(rawData.password, user.password);
       if (isCorrectPassword === true) {
         console.log("check password");
+        const userWithoutPassword = {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          phone: user.phone,
+          address: user.address,
+          roleId: user.roleId,
+          status: user.status,
+        };
         return {
           errCode: 0,
           errMessage: "oke!",
-          DT: "", //data
+          DT: userWithoutPassword, //data
         };
       }
     }
@@ -137,19 +146,37 @@ const handleUserLogin = async (rawData) => {
   }
 };
 
-const getAllStaffService = async () => {
+const getAllStaffService = async (page, limit) => {
   try {
-    let users = await db.User.findAll({
+    let offset = (page - 1) * limit;
+    let { count, rows } = await db.User.findAndCountAll({
+      offset: offset,
+      distinct: true,
+      limit: limit,
       where: { roleId: "STAFF" },
       attributes: {
         exclude: ["password"],
       },
     });
-    if (users) {
+
+    let totalPages = Math.ceil(count / limit);
+    let data = {
+      totalRows: count,
+      totalPages: totalPages,
+      suppliers: rows,
+    };
+
+    // let users = await db.User.findAll({
+    //   where: { roleId: "STAFF" },
+    //   attributes: {
+    //     exclude: ["password"],
+    //   },
+    // });
+    if (data) {
       return {
         errCode: 0,
         errMessage: "oke!",
-        DT: users, //data
+        DT: data, //data
       };
     }
     return {
@@ -166,19 +193,36 @@ const getAllStaffService = async () => {
   }
 };
 
-const getAllUserService = async () => {
+const getAllUserService = async (page, limit) => {
   try {
-    let users = await db.User.findAll({
+    let offset = (page - 1) * limit;
+    let { count, rows } = await db.User.findAndCountAll({
+      offset: offset,
+      distinct: true,
+      limit: limit,
       where: { roleId: "USER" },
       attributes: {
         exclude: ["password"],
       },
     });
-    if (users) {
+
+    let totalPages = Math.ceil(count / limit);
+    let data = {
+      totalRows: count,
+      totalPages: totalPages,
+      suppliers: rows,
+    };
+    // let users = await db.User.findAll({
+    //   where: { roleId: "USER" },
+    //   attributes: {
+    //     exclude: ["password"],
+    //   },
+    // });
+    if (data) {
       return {
         errCode: 0,
         errMessage: "oke!",
-        DT: users, //data
+        DT: data, //data
       };
     }
     return {

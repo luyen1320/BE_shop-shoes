@@ -61,8 +61,10 @@ const handleLogin = async (req, res) => {
 };
 
 const getAllStaff = async (req, res) => {
+  let page = req.query.page;
+  let limit = req.query.limit;
   try {
-    let data = await userService.getAllStaffService();
+    let data = await userService.getAllStaffService(+page, +limit);
     return res.status(200).json({
       errCode: data.errCode,
       errMessage: data.errMessage,
@@ -78,8 +80,10 @@ const getAllStaff = async (req, res) => {
   }
 };
 const getAllUser = async (req, res) => {
+  let page = req.query.page;
+  let limit = req.query.limit;
   try {
-    let data = await userService.getAllUserService();
+    let data = await userService.getAllUserService(+page, +limit);
     return res.status(200).json({
       errCode: data.errCode,
       errMessage: data.errMessage,

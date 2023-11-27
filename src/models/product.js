@@ -13,8 +13,8 @@ module.exports = (sequelize, DataTypes) => {
         as: "images",
       });
       Product.hasMany(models.Inventory, {
-        foreignKey: "productId",
         as: "inventories",
+        foreignKey: "productId",
       });
       Product.hasMany(models.OrderDetail, {
         foreignKey: "productId",

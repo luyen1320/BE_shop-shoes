@@ -21,9 +21,11 @@ const initWebRoutes = (app) => {
 
   //Order
   router.post("/addtocart", orderController.addToCart);
+  router.delete("/removeproductcart", orderController.deleteProductInCart);
   router.get("/getproductincart/:id", orderController.getProductInCart);
   router.post("/createOrder", orderController.createOrder);
   router.get("/getallorder", orderController.getAllOrder);
+  router.get("/getorder/:id", orderController.getAllOrderByUserId);
   router.put("/updateorder/:id", orderController.updateOrder);
 
   //product
@@ -40,7 +42,7 @@ const initWebRoutes = (app) => {
   router.put("/supplier/update", supplierController.updateSupp);
 
   //review
-  router.get("/review", reviewController.getAllReview);
+  router.get("/review/:id", reviewController.getAllReview);
   router.post("/review/create", reviewController.createReview);
   return app.use("/api/v1/", router);
 };

@@ -1,4 +1,5 @@
 const db = require("../models");
+const { sendMailService } = require("./mailService");
 
 const sizeMapping = {
   38: 1,
@@ -30,11 +31,13 @@ const addToCartService = async (data) => {
     const cart = await db.Cart.findOne({
       where: {
         userId: data.userId,
-        productId: data.productId,
-        sizeId: sizeMapping[data.sizeId] || 0,
+        productId: parseInt(data.productId),
+        sizeId:
+          data?.sizeId > 10
+            ? sizeMapping[parseInt(data.sizeId)]
+            : data.sizeId || 0,
       },
     });
-
     if (!cart) {
       await db.Cart.create({
         userId: data.userId,
@@ -45,7 +48,10 @@ const addToCartService = async (data) => {
     } else {
       await cart.update(
         {
-          quantity: parseInt(cart.quantity) + parseInt(data.quantity),
+          quantity:
+            parseInt(cart.quantity) === 1 && parseInt(data.quantity) === -1
+              ? parseInt(cart.quantity)
+              : parseInt(cart.quantity) + parseInt(data.quantity),
         },
         {
           where: {
@@ -118,11 +124,6 @@ const createNewOrderService = async (order) => {
       };
     }
 
-    // status: DataTypes.STRING,
-    //   province: DataTypes.STRING,
-    //   district: DataTypes.STRING,
-    //   ward: DataTypes.STRING,
-
     const addOrder = await db.Order.create({
       username: order?.username,
       email: order?.email,
@@ -151,6 +152,25 @@ const createNewOrderService = async (order) => {
     );
 
     await Promise.all(createOrderDetailsPromises);
+
+    // Giảm số lượng sản phẩm trong bảng Product
+    order?.listProduct?.forEach(async (product) => {
+      const productToUpdate = await db.Inventory.findOne({
+        where: {
+          productId: product.id,
+          sizeId: sizeMapping[product.size] || 0,
+        },
+      });
+
+      if (productToUpdate) {
+        // Giảm số lượng của size cụ thể
+        productToUpdate.quantityInStock -= product.quantity;
+
+        // Lưu lại thay đổi vào database
+        await productToUpdate.save();
+      }
+    });
+
     //delete product in cart after create order
     const productIds = order?.listProduct?.map((product) => product.id);
     const sizeIds = order?.listProduct?.map(
@@ -174,7 +194,13 @@ const createNewOrderService = async (order) => {
         ],
       },
     });
-
+    const text = `
+    <p>Đơn hàng mới từ ${order?.username}</p>
+    <p>Địa chỉ: ${order?.addressDetail}</p>
+    <p>Số điện thoại: ${order?.phone}</p>
+    <p>Tổng tiền: ${order?.totalMoney}</p>
+    `;
+    sendMailService(order?.email, "Đơn hàng mới", text);
     return {
       errCode: 0,
       errMessage: "OK",
@@ -217,6 +243,39 @@ const getAllOrderService = async () => {
       errCode: -1,
       errMessage: "Lỗi máy chủ",
       DT: "",
+    };
+  }
+};
+
+const getAllOrderByUserIdService = async (userId) => {
+  try {
+    const order = await db.Order.findAll({
+      where: { userId: userId },
+      include: [
+        {
+          model: db.OrderDetail,
+          as: "orderDetail",
+          attributes: ["productId", "price", "size", "quantity", "status"],
+          include: [
+            {
+              model: db.Product, // Thay "Product" bằng tên mô hình sản phẩm của bạn
+              as: "product",
+              attributes: ["productName"], // Thay "productName", "otherProductAttributes" bằng các thuộc tính sản phẩm bạn muốn lấy
+            },
+          ],
+        },
+      ],
+    });
+    return {
+      errCode: 0,
+      errMessage: "OK",
+      DT: order,
+    };
+  } catch (e) {
+    return {
+      errCode: -1,
+      errMessage: "Lỗi máy chủ",
+      DT: e,
     };
   }
 };
@@ -266,10 +325,62 @@ const updateOrder = async (orderId, data) => {
   }
 };
 
+const deleteProductInCartService = async (req) => {
+  const userId = parseInt(req.query.userId);
+  const productId = parseInt(req.query.productId);
+  const sizeId = parseInt(req.query.sizeId);
+  try {
+    if (!productId || !userId || !sizeId) {
+      return {
+        errCode: 1,
+        errMessage: "Missing required parameter",
+        DT: "",
+      };
+    }
+    const productInCart = await db.Cart.findOne({
+      where: {
+        userId: userId,
+        productId: productId,
+        sizeId: sizeMapping[sizeId],
+      },
+    });
+
+    if (!productInCart) {
+      return {
+        errCode: 1,
+        errMessage: "Không tìm thấy sản phẩm trong giỏ hàng",
+        DT: "",
+      };
+    }
+
+    await db.Cart.destroy({
+      where: {
+        userId: userId,
+        productId: productId,
+        sizeId: sizeMapping[sizeId],
+      },
+    });
+
+    return {
+      errCode: 0,
+      errMessage: "OK",
+      DT: "",
+    };
+  } catch (e) {
+    return {
+      errCode: -1,
+      errMessage: "Lỗi máy chủ",
+      DT: e,
+    };
+  }
+};
+
 module.exports = {
   addToCartService,
   getProductInCartServive,
   createNewOrderService,
   getAllOrderService,
   updateOrder,
+  deleteProductInCartService,
+  getAllOrderByUserIdService,
 };

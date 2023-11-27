@@ -1,6 +1,6 @@
 import db from "../models/index";
 import bcrypt from "bcryptjs";
-import { Op } from "sequelize";
+import { Op, literal } from "sequelize";
 
 const createNewProduct = async (data) => {
   try {
@@ -196,33 +196,90 @@ const getOneProductService = async (productId) => {
   }
 };
 
-const getAllProductService = async () => {
+const getAllProductService = async (page, limit, searchParams) => {
   try {
-    const products = await db.Product.findAll({
-      include: [
-        {
-          model: db.Image,
-          as: "images",
-          attributes: ["image"],
-        },
-        {
-          model: db.Inventory,
-          as: "inventories",
-          attributes: ["sizeId", "quantityInStock"],
-        },
-      ],
-    });
+    if (page && limit) {
+      let offset = (page - 1) * limit;
+      const whereClause = {};
+      if (searchParams?.supplier) {
+        whereClause.supplier = searchParams?.supplier;
+      }
 
-    return {
-      errCode: 0,
-      errMessage: "OK",
-      DT: products,
-    };
-  } catch {
+      if (searchParams?.minPrice) {
+        whereClause.price = {
+          [Op.gte]: searchParams?.minPrice,
+        };
+      }
+
+      if (searchParams?.maxPrice) {
+        whereClause.price = {
+          ...whereClause.price,
+          [Op.lte]: searchParams?.maxPrice,
+        };
+      }
+
+      const sizesArray = searchParams?.sizes
+        ? searchParams.sizes.split(",").map((size) => parseInt(size, 10))
+        : [1, 2, 3, 4, 5, 6, 7];
+
+      console.log("====================================");
+      console.log(whereClause);
+      console.log("====================================");
+      let { count, rows } = await db.Product.findAndCountAll({
+        offset: offset,
+        distinct: true,
+        limit: limit,
+        where: whereClause,
+        include: [
+          {
+            model: db.Inventory,
+            as: "inventories",
+            where: {
+              sizeId: { [Op.in]: sizesArray },
+            },
+          },
+        ],
+      });
+
+      let totalPages = Math.ceil(count / limit);
+      let data = {
+        totalRows: count,
+        totalPages: totalPages,
+        suppliers: rows,
+      };
+      return {
+        errCode: 0,
+        errMessage: "OK",
+        DT: data,
+      };
+    } else {
+      const products = await db.Product.findAll({
+        include: [
+          {
+            model: db.Image,
+            as: "images",
+            attributes: ["image"],
+          },
+          {
+            model: db.Inventory,
+            as: "inventories",
+            attributes: ["sizeId", "quantityInStock"],
+          },
+        ],
+      });
+
+      return {
+        errCode: 0,
+        errMessage: "OK",
+        DT: products,
+      };
+    }
+  } catch (e) {
+    console.log(e);
     return {
       errCode: -1,
       errMessage: "Lỗi máy chủ",
-      DT: "",
+      DT: e,
     };
   }
 };

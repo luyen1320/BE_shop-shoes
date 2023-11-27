@@ -60,14 +60,26 @@ const deleteProduct = async (req, res) => {
 
 const getAllProduct = async (req, res) => {
   try {
-    const product = await productService.getAllProductService();
+    let page = req.query.page;
+    let limit = req.query.limit;
+    const searchParams = {
+      supplier: req.query.supplierName || "", // Đặt giá trị mặc định là rỗng nếu không được cung cấp
+      minPrice: +req.query.minPrice || "",
+      maxPrice: +req.query.maxPrice || "",
+      sizes: req.query.sizes || "",
+    };
+    const product = await productService.getAllProductService(
+      +page,
+      +limit,
+      searchParams
+    );
 
     return res.status(200).json(product);
   } catch (e) {
     return res.status(500).json({
       errCode: "-1",
       errMessage: "OK",
-      DT: "", //data
+      DT: e, //data
     });
   }
 };

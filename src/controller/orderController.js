@@ -9,7 +9,7 @@ const createOrder = async (req, res) => {
     return res.status(500).json({
       errCode: "-1",
       errMessage: "LỖi",
-      DT: "", //data
+      DT: e, //data
     });
   }
 };
@@ -63,10 +63,43 @@ const getAllOrder = async (req, res) => {
   }
 };
 
+const getAllOrderByUserId = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const data = await orderService.getAllOrderByUserIdService(userId);
+
+    return res.status(200).json(
+      data //data
+    );
+  } catch (e) {
+    return res.status(500).json({
+      errCode: "-1",
+      errMessage: "Lỗi",
+      DT: "", //data
+    });
+  }
+};
+
 const updateOrder = async (req, res) => {
   try {
     const orderId = req.params.id;
     const data = await orderService.updateOrder(orderId, req.body);
+
+    return res.status(200).json(
+      data //data
+    );
+  } catch (e) {
+    return res.status(500).json({
+      errCode: "-1",
+      errMessage: "Lỗi",
+      DT: "", //data
+    });
+  }
+};
+
+const deleteProductInCart = async (req, res) => {
+  try {
+    const data = await orderService.deleteProductInCartService(req);
 
     return res.status(200).json(
       data //data
@@ -86,4 +119,6 @@ module.exports = {
   createOrder: createOrder,
   getAllOrder: getAllOrder,
   updateOrder: updateOrder,
+  deleteProductInCart: deleteProductInCart,
+  getAllOrderByUserId: getAllOrderByUserId,
 };
