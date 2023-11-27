@@ -324,10 +324,197 @@ const deleteProductService = async (productId) => {
   }
 };
 
+const getProductSaleService = async (page, limit) => {
+  try {
+    if (page && limit) {
+      let offset = (page - 1) * limit;
+      const { count, rows } = await db.Product.findAndCountAll({
+        offset: offset,
+        limit: limit,
+        where: {
+          discount: {
+            [Op.gt]: 0,
+          },
+        },
+
+        order: [["discount", "DESC"]],
+      });
+      let totalPages = Math.ceil(count / limit);
+      console.log(rows);
+      let data = {
+        totalRows: count,
+        totalPages: totalPages,
+        suppliers: rows,
+      };
+      return {
+        errCode: 0,
+        errMessage: "OK",
+        DT: data,
+      };
+    } else {
+      const products = await db.Product.findAll({
+        where: {
+          discount: {
+            [Op.gt]: 0,
+          },
+        },
+        include: [
+          {
+            model: db.Image,
+            as: "images",
+            attributes: ["image"],
+          },
+
+          {
+            model: db.Inventory,
+            as: "inventories",
+            attributes: ["sizeId", "quantityInStock"],
+          },
+        ],
+        order: [["discount", "DESC"]],
+      });
+      return {
+        errCode: 0,
+        errMessage: "OK",
+        DT: products,
+      };
+    }
+  } catch (e) {
+    console.log(e);
+    return {
+      errCode: -1,
+      errMessage: "Lỗi máy chủ",
+      DT: e,
+    };
+  }
+};
+
+const getProductBestSellerService = async () => {
+  try {
+    const products = await db.OrderDetail.findAll({
+      attributes: [
+        "productId",
+        "orderId",
+        [db.sequelize.fn("SUM", db.sequelize.col("quantity")), "totalQuantity"],
+      ],
+      include: [
+        {
+          model: db.Order,
+          as: "order",
+          attributes: [],
+          where: {
+            status: "SUCCESS", // Chỉ lấy các đơn hàng có status là "SUCCESS"
+          },
+        },
+      ],
+      include: [
+        {
+          model: db.Product,
+          as: "product",
+          // attributes: ["productName", "image", "price", "discount"],
+        },
+      ],
+      group: ["productId", "orderId"],
+      order: [[db.sequelize.literal("totalQuantity"), "DESC"]],
+    });
+
+    return {
+      errCode: 0,
+      errMessage: "OK",
+      DT: products,
+    };
+  } catch (e) {
+    console.log(e);
+    return {
+      errCode: -1,
+      errMessage: "Lỗi máy chủ",
+      DT: e,
+    };
+  }
+};
+
+const getDataManageAdminService = async () => {
+  try {
+    const totalRevenue = await db.Order.sum("totalMoney", {
+      where: {
+        status: "SUCCESS",
+      },
+    });
+    const totalRevenueYear = await db.Order.sum("totalMoney", {
+      where: {
+        status: "SUCCESS",
+        createdAt: {
+          [Op.gte]: literal("DATE_SUB(NOW(), INTERVAL 1 YEAR)"),
+        },
+      },
+    });
+    const totalRevenueWeek = await db.Order.sum("totalMoney", {
+      where: {
+        status: "SUCCESS",
+        createdAt: {
+          [Op.gte]: literal("DATE_SUB(NOW(), INTERVAL 1 WEEK)"),
+        },
+      },
+    });
+
+    const monthlyRevenue = await db.Order.findAll({
+      attributes: [
+        [db.sequelize.fn("DATE", db.sequelize.col("createdAt")), "day"],
+        [db.sequelize.fn("SUM", db.sequelize.col("totalMoney")), "totalMoney"],
+      ],
+      where: {
+        status: "SUCCESS",
+        createdAt: {
+          [Op.gte]: literal("DATE_SUB(NOW(), INTERVAL 1 YEAR)"),
+        },
+      },
+      group: [db.sequelize.fn("DATE", db.sequelize.col("createdAt"))],
+      raw: true,
+    });
+    const totalCustomers = await db.User.count({
+      where: {
+        roleId: "USER",
+      },
+    });
+    const totalProducts = await db.Product.count();
+    const totalOrdersPending = await db.Order.count({
+      where: {
+        status: "PENDING",
+      },
+    });
+    const totalOrders = await db.Order.count();
+
+    const data = {
+      totalRevenue: totalRevenue,
+      totalRevenueYear: totalRevenueYear,
+      totalRevenueWeek: totalRevenueWeek,
+      totalCustomers: totalCustomers,
+      totalProducts: totalProducts,
+      totalOrdersPending: totalOrdersPending,
+      monthlyRevenue: monthlyRevenue,
+      totalOrders: totalOrders,
+    };
+    return {
+      errCode: 0,
+      errMessage: "OK",
+      DT: data,
+    };
+  } catch (e) {
+    console.log(e);
+    return {
+      errCode: -1,
+      errMessage: "Lỗi máy chủ",
+      DT: e,
+    };
+  }
+};
 module.exports = {
   createNewProduct: createNewProduct,
   updateProductService: updateProductService,
   getOneProductService: getOneProductService,
   getAllProductService: getAllProductService,
   deleteProductService: deleteProductService,
+  getProductSaleService: getProductSaleService,
+  getProductBestSellerService: getProductBestSellerService,
+  getDataManageAdminService: getDataManageAdminService,
 };

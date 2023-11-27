@@ -20,7 +20,16 @@ module.exports = {
       phone: {
         type: Sequelize.STRING,
       },
-      address: {
+      addressDetails: {
+        type: Sequelize.STRING,
+      },
+      province: {
+        type: Sequelize.STRING,
+      },
+      district: {
+        type: Sequelize.STRING,
+      },
+      ward: {
         type: Sequelize.STRING,
       },
       roleId: {

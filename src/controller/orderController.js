@@ -48,8 +48,15 @@ const getProductInCart = async (req, res) => {
 };
 
 const getAllOrder = async (req, res) => {
+  let page = req.query.page;
+  let limit = req.query.limit;
+  let sortByName = req.query.sortByName;
   try {
-    const data = await orderService.getAllOrderService();
+    const data = await orderService.getAllOrderService(
+      +page,
+      +limit,
+      sortByName
+    );
 
     return res.status(200).json(
       data //data

@@ -71,7 +71,7 @@ const registerNewUser = async (rawUserData) => {
       phone: rawUserData.phone || "",
       address: rawUserData.address || "",
       roleId: rawUserData.roleId || "USER",
-      status: rawUserData.status || "ONLINE",
+      status: rawUserData.status || "ACTIVE",
     });
 
     return {
@@ -117,6 +117,10 @@ const handleUserLogin = async (rawData) => {
           address: user.address,
           roleId: user.roleId,
           status: user.status,
+          addressDetails: user.addressDetails,
+          province: user.province,
+          district: user.district,
+          ward: user.ward,
         };
         return {
           errCode: 0,
@@ -146,44 +150,83 @@ const handleUserLogin = async (rawData) => {
   }
 };
 
-const getAllStaffService = async (page, limit) => {
+const getAllStaffService = async (page, limit, sortByName) => {
   try {
-    let offset = (page - 1) * limit;
-    let { count, rows } = await db.User.findAndCountAll({
-      offset: offset,
-      distinct: true,
-      limit: limit,
-      where: { roleId: "STAFF" },
-      attributes: {
-        exclude: ["password"],
-      },
-    });
+    if (sortByName === "true") {
+      let offset = (page - 1) * limit;
+      let { count, rows } = await db.User.findAndCountAll({
+        offset: offset,
+        distinct: true,
+        limit: limit,
+        order: [
+          ["username", "ASC"], // Sắp xếp theo username tăng dần
+          // Các điều kiện sắp xếp khác nếu cần
+        ],
+        where: {
+          roleId: {
+            [db.Sequelize.Op.or]: ["STAFF", "ADMIN"],
+          },
+        },
+        attributes: {
+          exclude: ["password"],
+        },
+      });
 
-    let totalPages = Math.ceil(count / limit);
-    let data = {
-      totalRows: count,
-      totalPages: totalPages,
-      suppliers: rows,
-    };
+      let totalPages = Math.ceil(count / limit);
+      let data = {
+        totalRows: count,
+        totalPages: totalPages,
+        suppliers: rows,
+      };
 
-    // let users = await db.User.findAll({
-    //   where: { roleId: "STAFF" },
-    //   attributes: {
-    //     exclude: ["password"],
-    //   },
-    // });
-    if (data) {
+      if (data) {
+        return {
+          errCode: 0,
+          errMessage: "oke!",
+          DT: data, //data
+        };
+      }
       return {
-        errCode: 0,
-        errMessage: "oke!",
-        DT: data, //data
+        errCode: 1,
+        errMessage: "Không tìm thấy nhân viên!",
+        DT: "", //data
+      };
+    } else {
+      let offset = (page - 1) * limit;
+      let { count, rows } = await db.User.findAndCountAll({
+        offset: offset,
+        distinct: true,
+        limit: limit,
+        where: {
+          roleId: {
+            [db.Sequelize.Op.or]: ["STAFF", "ADMIN"],
+          },
+        },
+        attributes: {
+          exclude: ["password"],
+        },
+      });
+
+      let totalPages = Math.ceil(count / limit);
+      let data = {
+        totalRows: count,
+        totalPages: totalPages,
+        suppliers: rows,
+      };
+
+      if (data) {
+        return {
+          errCode: 0,
+          errMessage: "oke!",
+          DT: data, //data
+        };
+      }
+      return {
+        errCode: 1,
+        errMessage: "Không tìm thấy nhân viên!",
+        DT: "", //data
       };
     }
-    return {
-      errCode: 1,
-      errMessage: "Không tìm thấy nhân viên!",
-      DT: "", //data
-    };
   } catch (error) {
     return {
       errCode: -1,

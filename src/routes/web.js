@@ -9,6 +9,9 @@ import orderController from "../controller/orderController";
 const router = express.Router();
 
 const initWebRoutes = (app) => {
+  //Admin
+  router.get("/product/dtadmin", productController.getDataManageAdmin);
+
   router.post("/create-new-user", userController.handleRegister);
   router.get("/getstaff", userController.getAllStaff);
   router.get("/getuser", userController.getAllUser);
@@ -31,9 +34,11 @@ const initWebRoutes = (app) => {
   //product
   router.post("/product/create", productController.createProduct);
   router.put("/product/update", productController.updateProduct);
+  router.get("/product/sale", productController.getProductSale);
+  router.get("/product", productController.getAllProduct);
+  router.get("/product/bestseller", productController.getProductBestSeller);
   router.get("/product/:id", productController.getOneProduct);
   router.delete("/product/:id", productController.deleteProduct);
-  router.get("/product", productController.getAllProduct);
 
   //supplier
   router.post("/supplier/create", supplierController.createSupplier);
@@ -44,6 +49,7 @@ const initWebRoutes = (app) => {
   //review
   router.get("/review/:id", reviewController.getAllReview);
   router.post("/review/create", reviewController.createReview);
+
   return app.use("/api/v1/", router);
 };
 

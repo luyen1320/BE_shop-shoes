@@ -63,8 +63,10 @@ const handleLogin = async (req, res) => {
 const getAllStaff = async (req, res) => {
   let page = req.query.page;
   let limit = req.query.limit;
+  let sortByName = req.query.sortByName;
+
   try {
-    let data = await userService.getAllStaffService(+page, +limit);
+    let data = await userService.getAllStaffService(+page, +limit, sortByName);
     return res.status(200).json({
       errCode: data.errCode,
       errMessage: data.errMessage,

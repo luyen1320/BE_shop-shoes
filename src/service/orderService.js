@@ -215,29 +215,103 @@ const createNewOrderService = async (order) => {
   }
 };
 
-const getAllOrderService = async () => {
+const getAllOrderService = async (page, limit, sortByName) => {
+  console.log(sortByName);
   try {
-    const order = await db.Order.findAll({
-      include: [
-        {
-          model: db.OrderDetail,
-          as: "orderDetail",
-          attributes: ["productId", "price", "size", "quantity", "status"],
-          include: [
-            {
-              model: db.Product, // Thay "Product" bằng tên mô hình sản phẩm của bạn
-              as: "product",
-              attributes: ["productName"], // Thay "productName", "otherProductAttributes" bằng các thuộc tính sản phẩm bạn muốn lấy
-            },
-          ],
-        },
-      ],
-    });
-    return {
-      errCode: 0,
-      errMessage: "OK",
-      DT: order,
-    };
+    if (page && limit && sortByName === "true") {
+      let offset = (page - 1) * limit;
+      const { count, rows } = await db.Order.findAndCountAll({
+        offset: offset,
+        limit: limit,
+        order: [
+          ["username", "ASC"], // Sắp xếp theo username tăng dần
+          // Các điều kiện sắp xếp khác nếu cần
+        ],
+        include: [
+          {
+            model: db.OrderDetail,
+            as: "orderDetail",
+            attributes: ["productId", "price", "size", "quantity", "status"],
+            include: [
+              {
+                model: db.Product, // Thay "Product" bằng tên mô hình sản phẩm của bạn
+                as: "product",
+                attributes: ["productName"], // Thay "productName", "otherProductAttributes" bằng các thuộc tính sản phẩm bạn muốn lấy
+              },
+            ],
+          },
+        ],
+      });
+      let totalPages = Math.ceil(count / limit);
+      let data = {
+        totalRows: count,
+        totalPages: totalPages - 1,
+        suppliers: rows,
+      };
+      return {
+        errCode: 0,
+        errMessage: "OK",
+        DT: data,
+      };
+    } else if (page && limit) {
+      let offset = (page - 1) * limit;
+      const { count, rows } = await db.Order.findAndCountAll({
+        offset: offset,
+        limit: limit,
+
+        include: [
+          {
+            model: db.OrderDetail,
+            as: "orderDetail",
+            attributes: ["productId", "price", "size", "quantity", "status"],
+            include: [
+              {
+                model: db.Product, // Thay "Product" bằng tên mô hình sản phẩm của bạn
+                as: "product",
+                attributes: ["productName"], // Thay "productName", "otherProductAttributes" bằng các thuộc tính sản phẩm bạn muốn lấy
+              },
+            ],
+          },
+        ],
+      });
+      let totalPages = Math.ceil(count / limit);
+      let data = {
+        totalRows: count,
+        totalPages: totalPages - 1,
+        suppliers: rows,
+      };
+      return {
+        errCode: 0,
+        errMessage: "OK",
+        DT: data,
+      };
+    } else {
+      const order = await db.Order.findAll({
+        include: [
+          {
+            model: db.OrderDetail,
+            as: "orderDetail",
+            attributes: ["productId", "price", "size", "quantity", "status"],
+            include: [
+              {
+                model: db.Product, // Thay "Product" bằng tên mô hình sản phẩm của bạn
+                as: "product",
+                attributes: ["productName"], // Thay "productName", "otherProductAttributes" bằng các thuộc tính sản phẩm bạn muốn lấy
+              },
+            ],
+          },
+        ],
+        // order: [
+        //   ["username", "ASC"], // Sắp xếp theo username tăng dần
+        //   // Các điều kiện sắp xếp khác nếu cần
+        // ],
+      });
+      return {
+        errCode: 0,
+        errMessage: "OK",
+        DT: order,
+      };
+    }
   } catch {
     return {
       errCode: -1,

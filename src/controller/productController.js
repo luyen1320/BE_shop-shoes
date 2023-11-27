@@ -84,10 +84,57 @@ const getAllProduct = async (req, res) => {
   }
 };
 
+const getProductSale = async (req, res) => {
+  let page = req.query.page;
+  let limit = req.query.limit;
+  console.log(page, limit);
+  try {
+    const product = await productService.getProductSaleService(+page, +limit);
+
+    return res.status(200).json(product);
+  } catch (e) {
+    return res.status(500).json({
+      errCode: "-1",
+      errMessage: "OK",
+      DT: e, //data
+    });
+  }
+};
+
+const getProductBestSeller = async (req, res) => {
+  try {
+    const product = await productService.getProductBestSellerService();
+
+    return res.status(200).json(product);
+  } catch (e) {
+    return res.status(500).json({
+      errCode: "-1",
+      errMessage: "OK",
+      DT: e, //data
+    });
+  }
+};
+
+const getDataManageAdmin = async (req, res) => {
+  try {
+    const product = await productService.getDataManageAdminService();
+
+    return res.status(200).json(product);
+  } catch (e) {
+    return res.status(500).json({
+      errCode: "-1",
+      errMessage: "OK",
+      DT: e, //data
+    });
+  }
+};
 module.exports = {
   createProduct: createProduct,
   updateProduct: updateProduct,
   getOneProduct: getOneProduct,
   deleteProduct: deleteProduct,
   getAllProduct: getAllProduct,
+  getProductSale: getProductSale,
+  getProductBestSeller: getProductBestSeller,
+  getDataManageAdmin: getDataManageAdmin,
 };
