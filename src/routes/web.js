@@ -25,6 +25,10 @@ const initWebRoutes = (app) => {
   //Order
   router.post("/addtocart", orderController.addToCart);
   router.delete("/removeproductcart", orderController.deleteProductInCart);
+  router.delete(
+    "/removeallproductcart",
+    orderController.deleteAllProductInCart
+  );
   router.get("/getproductincart/:id", orderController.getProductInCart);
   router.post("/createOrder", orderController.createOrder);
   router.get("/getallorder", orderController.getAllOrder);

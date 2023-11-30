@@ -10,6 +10,15 @@ const sizeMapping = {
   43: 6,
   44: 7,
 };
+const sizeMapping2 = {
+  1: 38,
+  2: 39,
+  3: 40,
+  4: 41,
+  5: 42,
+  6: 43,
+  7: 44,
+};
 
 const addToCartService = async (data) => {
   try {
@@ -103,6 +112,7 @@ const getProductInCartServive = async (userId) => {
       price: product.price,
       image: product.image,
       quantity: productInCart[i].quantity,
+      discount: product.discount,
       size: size.sizeShoes,
     };
     listProduct.push(newProduct);
@@ -123,7 +133,7 @@ const createNewOrderService = async (order) => {
         DT: "",
       };
     }
-
+    console.log(order);
     const addOrder = await db.Order.create({
       username: order?.username,
       email: order?.email,
@@ -145,7 +155,9 @@ const createNewOrderService = async (order) => {
         orderId: addOrder.id,
         productId: product.id,
         price: product.price,
-        size: product.size,
+        size: product.size
+          ? product.size
+          : sizeMapping2[parseInt(product.sizeId)],
         quantity: product.quantity,
         status: "PENDING",
       })
@@ -216,7 +228,6 @@ const createNewOrderService = async (order) => {
 };
 
 const getAllOrderService = async (page, limit, sortByName) => {
-  console.log(sortByName);
   try {
     if (page && limit && sortByName === "true") {
       let offset = (page - 1) * limit;
@@ -245,7 +256,7 @@ const getAllOrderService = async (page, limit, sortByName) => {
       let totalPages = Math.ceil(count / limit);
       let data = {
         totalRows: count,
-        totalPages: totalPages - 1,
+        totalPages: totalPages,
         suppliers: rows,
       };
       return {
@@ -277,7 +288,7 @@ const getAllOrderService = async (page, limit, sortByName) => {
       let totalPages = Math.ceil(count / limit);
       let data = {
         totalRows: count,
-        totalPages: totalPages - 1,
+        totalPages: totalPages,
         suppliers: rows,
       };
       return {
@@ -449,6 +460,49 @@ const deleteProductInCartService = async (req) => {
   }
 };
 
+const deleteAllProductInCartService = async (req) => {
+  const userId = parseInt(req.query.userId);
+  try {
+    if (!userId) {
+      return {
+        errCode: 1,
+        errMessage: "Missing required parameter",
+        DT: "",
+      };
+    }
+    const productInCart = await db.Cart.findOne({
+      where: {
+        userId: userId,
+      },
+    });
+
+    if (!productInCart) {
+      return {
+        errCode: 1,
+        errMessage: "Không tìm thấy sản phẩm trong giỏ hàng",
+        DT: "",
+      };
+    }
+
+    await db.Cart.destroy({
+      where: {
+        userId: userId,
+      },
+    });
+
+    return {
+      errCode: 0,
+      errMessage: "OK",
+      DT: "",
+    };
+  } catch (e) {
+    return {
+      errCode: -1,
+      errMessage: "Lỗi máy chủ",
+      DT: e,
+    };
+  }
+};
 module.exports = {
   addToCartService,
   getProductInCartServive,
@@ -456,5 +510,6 @@ module.exports = {
   getAllOrderService,
   updateOrder,
   deleteProductInCartService,
+  deleteAllProductInCartService,
   getAllOrderByUserIdService,
 };

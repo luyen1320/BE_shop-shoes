@@ -120,6 +120,21 @@ const deleteProductInCart = async (req, res) => {
   }
 };
 
+const deleteAllProductInCart = async (req, res) => {
+  try {
+    const data = await orderService.deleteAllProductInCartService(req);
+
+    return res.status(200).json(
+      data //data
+    );
+  } catch (e) {
+    return res.status(500).json({
+      errCode: "-1",
+      errMessage: "Lỗi",
+      DT: "", //data
+    });
+  }
+};
 module.exports = {
   addToCart: addToCart,
   getProductInCart: getProductInCart,
@@ -127,5 +142,6 @@ module.exports = {
   getAllOrder: getAllOrder,
   updateOrder: updateOrder,
   deleteProductInCart: deleteProductInCart,
+  deleteAllProductInCart: deleteAllProductInCart,
   getAllOrderByUserId: getAllOrderByUserId,
 };
