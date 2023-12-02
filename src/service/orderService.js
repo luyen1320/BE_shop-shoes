@@ -97,7 +97,14 @@ const getProductInCartServive = async (userId) => {
   const productInCart = await db.Cart.findAll({
     where: { userId: userId },
   });
-
+  console.log(productInCart);
+  if (!productInCart) {
+    return {
+      errCode: 0,
+      errMessage: "OK",
+      DT: [],
+    };
+  }
   const listProduct = [];
   for (let i = 0; i < productInCart.length; i++) {
     const product = await db.Product.findOne({
@@ -170,7 +177,9 @@ const createNewOrderService = async (order) => {
       const productToUpdate = await db.Inventory.findOne({
         where: {
           productId: product.id,
-          sizeId: sizeMapping[product.size] || 0,
+          sizeId: product?.sizeId
+            ? product?.sizeId
+            : sizeMapping[product?.size] || 0,
         },
       });
 
@@ -503,6 +512,70 @@ const deleteAllProductInCartService = async (req) => {
     };
   }
 };
+
+const deleteOrderService = async (orderId) => {
+  try {
+    if (!orderId) {
+      return {
+        errCode: 1,
+        errMessage: "Missing required parameter",
+        DT: "",
+      };
+    }
+    const order = await db.Order.findOne({
+      where: { id: orderId },
+    });
+
+    if (!order) {
+      return {
+        errCode: 1,
+        errMessage: "Không tìm thấy đơn hàng",
+        DT: "",
+      };
+    }
+    if (order) {
+      const orderDetail = await db.OrderDetail.findAll({
+        where: { orderId: orderId },
+      });
+      orderDetail.forEach(async (item) => {
+        const product = await db.Inventory.findOne({
+          where: {
+            productId: item.productId,
+            sizeId: item.size,
+          },
+        });
+        if (product) {
+          product.quantityInStock += item.quantity;
+          await product.save();
+        }
+      });
+      await db.OrderDetail.destroy({
+        where: {
+          orderId: orderId,
+        },
+      });
+    }
+
+    await db.Order.destroy({
+      where: {
+        id: orderId,
+      },
+    });
+
+    return {
+      errCode: 0,
+      errMessage: "OK",
+      DT: "",
+    };
+  } catch (e) {
+    return {
+      errCode: -1,
+      errMessage: "Lỗi máy chủ",
+      DT: e,
+    };
+  }
+};
+
 module.exports = {
   addToCartService,
   getProductInCartServive,
@@ -512,4 +585,5 @@ module.exports = {
   deleteProductInCartService,
   deleteAllProductInCartService,
   getAllOrderByUserIdService,
+  deleteOrderService,
 };
