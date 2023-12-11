@@ -31,14 +31,14 @@ app.use(function (req, res, next) {
   next();
 });
 
-// app.use(bodyParser.json({ limit: "50mb" })); // doc nhung data tu client gui len dang json
-// app.use(bodyParser.urlencoded({ limit: "50mb", extended: true })); // doc nhung data dang body
+app.use(bodyParser.json({ limit: "50mb" })); // doc nhung data tu client gui len dang json
+app.use(bodyParser.urlencoded({ limit: "50mb", extended: true })); // doc nhung data dang body
 
-// connectDB();
+connectDB();
 
-// initWebRoutes(app);
+initWebRoutes(app);
 
-// const PORT = process.env.PORT || 8686;
+const PORT = process.env.PORT || 8686;
 app.listen(PORT, () => {
   console.log(">>> Backend is running on the port = " + PORT);
 });
