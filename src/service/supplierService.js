@@ -17,22 +17,43 @@ const createNewSuppiler = async (data) => {
   }
 };
 
-const getSupplierPagination = async (page, limit) => {
+const getSupplierPagination = async (page, limit, sortByName) => {
   try {
-    let offset = (page - 1) * limit;
-    let { count, rows } = await db.Supplier.findAndCountAll({
-      offset: offset,
-      limit: limit,
-    });
+    if (sortByName === "true") {
+      let offset = (page - 1) * limit;
+      let { count, rows } = await db.Supplier.findAndCountAll({
+        offset: offset,
+        limit: limit,
+        order: [
+          ["name", "ASC"], // Sắp xếp theo username tăng dần
+          // Các điều kiện sắp xếp khác nếu cần
+        ],
+      });
 
-    let totalPages = Math.ceil(count / limit);
-    let data = { totalRows: count, totalPages: totalPages, suppliers: rows };
+      let totalPages = Math.ceil(count / limit);
+      let data = { totalRows: count, totalPages: totalPages, suppliers: rows };
 
-    return {
-      errCode: 0,
-      errMessage: "Lấy data thành công",
-      DT: data,
-    };
+      return {
+        errCode: 0,
+        errMessage: "Lấy data thành công",
+        DT: data,
+      };
+    } else {
+      let offset = (page - 1) * limit;
+      let { count, rows } = await db.Supplier.findAndCountAll({
+        offset: offset,
+        limit: limit,
+      });
+
+      let totalPages = Math.ceil(count / limit);
+      let data = { totalRows: count, totalPages: totalPages, suppliers: rows };
+
+      return {
+        errCode: 0,
+        errMessage: "Lấy data thành công",
+        DT: data,
+      };
+    }
   } catch (error) {
     console.log(error);
     return res.status(500).json({
