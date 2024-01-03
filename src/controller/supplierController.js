@@ -23,7 +23,12 @@ const getSuppliers = async (req, res) => {
     if (req.query.page && req.query.limit) {
       let page = req.query.page;
       let limit = req.query.limit;
-      const data = await supplierService.getSupplierPagination(+page, +limit);
+      let sortByName = req.query.sortByName;
+      const data = await supplierService.getSupplierPagination(
+        +page,
+        +limit,
+        sortByName
+      );
       return res.status(200).json({
         errCode: data.errCode,
         errMessage: data.errMessage,
