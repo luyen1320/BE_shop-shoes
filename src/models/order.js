@@ -8,7 +8,10 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      Order.hasMany(models.OrderDetail, {
+        foreignKey: "orderId",
+        as: "orderDetail",
+      });
     }
   }
   Order.init(
@@ -16,10 +19,16 @@ module.exports = (sequelize, DataTypes) => {
       username: DataTypes.STRING,
       email: DataTypes.STRING,
       phone: DataTypes.STRING,
-      address: DataTypes.STRING,
+      addressDetail: DataTypes.STRING,
       note: DataTypes.STRING,
       totalMoney: DataTypes.STRING,
+      paymentType: DataTypes.STRING,
+      deliveryType: DataTypes.STRING,
       userId: DataTypes.INTEGER,
+      status: DataTypes.STRING,
+      province: DataTypes.STRING,
+      district: DataTypes.STRING,
+      ward: DataTypes.STRING,
     },
     {
       sequelize,
