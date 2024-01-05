@@ -236,6 +236,10 @@ const createNewOrderService = async (order) => {
         )
         .join("")}
     </ul>
+    <p>Nếu bạn muốn hủy đơn hàng, vui lòng bấm vào đây(Sẽ hủy ngay sau khi bấm, cân nhắc trước khi bấm:)</p>
+    <a href="http://localhost:6868/api/v1/cancelOrder/${
+      addOrder.id
+    }">Bấm vào đây</a>
 `;
     sendMailService(order?.email, "Đơn hàng mới", text);
     return {
@@ -441,6 +445,10 @@ const updateOrder = async (orderId, data) => {
       };
     }
 
+    const orderDetails = await db.OrderDetail.findAll({
+      where: { orderId: orderId },
+    });
+
     await db.Order.update(
       {
         status: data.status,
@@ -449,6 +457,40 @@ const updateOrder = async (orderId, data) => {
         where: { id: orderId },
       }
     );
+
+    if (data.status === "CANCEL") {
+      await db.Notification.create({
+        name: order.username,
+        email: order.email,
+        phone: order.phone,
+        content: `Đơn hàng ${orderId} đã bị hủy gồm các sản phẩm:\n ${orderDetails
+          .map(
+            (item) =>
+              `ID ${item.productId} - size ${item.size} - ${item.quantity} sản phẩm`
+          )
+          .join("\n")}`,
+        status: 0,
+        orderId: orderId,
+      });
+      for (const orderDetail of orderDetails) {
+        const productToUpdate = await db.Inventory.findOne({
+          where: {
+            productId: orderDetail.productId,
+            sizeId: sizeMapping[orderDetail.size],
+          },
+        });
+
+        if (productToUpdate) {
+          // Tăng số lượng sản phẩm trong kho
+          productToUpdate.quantityInStock =
+            parseInt(productToUpdate.quantityInStock, 10) +
+            parseInt(orderDetail.quantity, 10);
+
+          // Lưu lại thay đổi vào database
+          await productToUpdate.save();
+        }
+      }
+    }
 
     return {
       errCode: 0,

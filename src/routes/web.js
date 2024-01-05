@@ -5,6 +5,7 @@ import supplierController from "../controller/supplierController";
 import productController from "../controller/productController";
 import reviewController from "../controller/reviewController";
 import orderController from "../controller/orderController";
+import notiController from "../controller/notiController";
 
 const router = express.Router();
 
@@ -24,6 +25,7 @@ const initWebRoutes = (app) => {
 
   //Order
   router.post("/addtocart", orderController.addToCart);
+  router.get("/cancelorder/:id", orderController.cancelOrder);
   router.delete("/removeproductcart", orderController.deleteProductInCart);
   router.delete(
     "/removeallproductcart",
@@ -54,6 +56,9 @@ const initWebRoutes = (app) => {
   //review
   router.get("/review/:id", reviewController.getAllReview);
   router.post("/review/create", reviewController.createReview);
+
+  //Noti
+  router.get("/getnoti", notiController.getAllNoti);
 
   return app.use("/api/v1/", router);
 };

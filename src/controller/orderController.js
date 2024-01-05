@@ -1,4 +1,24 @@
 import orderService from "../service/orderService";
+import db from "../models/index";
+
+const sizeMapping = {
+  38: 1,
+  39: 2,
+  40: 3,
+  41: 4,
+  42: 5,
+  43: 6,
+  44: 7,
+};
+const sizeMapping2 = {
+  1: 38,
+  2: 39,
+  3: 40,
+  4: 41,
+  5: 42,
+  6: 43,
+  7: 44,
+};
 
 const createOrder = async (req, res) => {
   try {
@@ -109,6 +129,68 @@ const updateOrder = async (req, res) => {
   }
 };
 
+const cancelOrder = async (req, res) => {
+  try {
+    const orderId = req.params.id;
+    const orderDetails = await db.OrderDetail.findAll({
+      where: { orderId: orderId },
+    });
+    const order = await db.Order.findOne({
+      where: { id: orderId },
+    });
+    if (order.status !== "PENDING" || order.status === "CANCEL")
+      return res.status(200).json({ status: "Hủy thất bại" }); //data
+
+    await db.Order.update(
+      {
+        status: "CANCEL",
+      },
+      {
+        where: { id: orderId },
+      }
+    );
+    await db.Notification.create({
+      name: order.username,
+      email: order.email,
+      phone: order.phone,
+      content: `Đơn hàng ${orderId} đã bị hủy gồm các sản phẩm:\n ${orderDetails
+        .map(
+          (item) =>
+            `ID ${item.productId} - size ${item.size} - ${item.quantity} sản phẩm`
+        )
+        .join("\n")}`,
+      status: 0,
+      orderId: orderId,
+    });
+
+    for (const orderDetail of orderDetails) {
+      const productToUpdate = await db.Inventory.findOne({
+        where: {
+          productId: orderDetail.productId,
+          sizeId: sizeMapping[orderDetail.size],
+        },
+      });
+
+      if (productToUpdate) {
+        // Tăng số lượng sản phẩm trong kho
+        productToUpdate.quantityInStock =
+          parseInt(productToUpdate.quantityInStock, 10) +
+          parseInt(orderDetail.quantity, 10);
+
+        // Lưu lại thay đổi vào database
+        await productToUpdate.save();
+      }
+    }
+    return res.status(200).json({ status: "Thành công" }); //data
+  } catch (e) {
+    return res.status(500).json({
+      errCode: "-1",
+      errMessage: "Lỗi",
+      DT: "", //data
+    });
+  }
+};
+
 const deleteOrder = async (req, res) => {
   try {
     const orderId = req.params.id;
@@ -167,4 +249,5 @@ module.exports = {
   deleteAllProductInCart: deleteAllProductInCart,
   getAllOrderByUserId: getAllOrderByUserId,
   deleteOrder: deleteOrder,
+  cancelOrder: cancelOrder,
 };
