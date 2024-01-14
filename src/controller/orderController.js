@@ -181,7 +181,7 @@ const cancelOrder = async (req, res) => {
         await productToUpdate.save();
       }
     }
-    return res.status(200).json({ status: "Thành công" }); //data
+    return res.status(200).json({ status: 200 }); //data
   } catch (e) {
     return res.status(500).json({
       errCode: "-1",

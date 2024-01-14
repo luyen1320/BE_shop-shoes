@@ -237,9 +237,7 @@ const createNewOrderService = async (order) => {
         .join("")}
     </ul>
     <p>Nếu bạn muốn hủy đơn hàng, vui lòng bấm vào đây(Sẽ hủy ngay sau khi bấm, cân nhắc trước khi bấm:)</p>
-    <a href="http://localhost:6868/api/v1/cancelOrder/${
-      addOrder.id
-    }">Bấm vào đây</a>
+    <a href="http://localhost:4040/?orderId=${addOrder.id}">Bấm vào đây</a>
 `;
     sendMailService(order?.email, "Đơn hàng mới", text);
     return {
