@@ -5,7 +5,7 @@ import connectDB from "./config/connectDB";
 import initWebRoutes from "./routes/web";
 const cors = require("cors");
 
-const app = express();
+// const app = express();
 
 app.use(function (req, res, next) {
   // Website you wish to allow to connect
@@ -36,7 +36,7 @@ app.use(bodyParser.json({ limit: "50mb" })); // doc nhung data tu client gui len
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true })); // doc nhung data dang body
 
 //connectDB
-connectDB();
+// connectDB();
 
 //initWebRoutes
 initWebRoutes(app);

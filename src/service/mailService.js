@@ -6,16 +6,17 @@ const transporter = nodemailer.createTransport({
   port: 465,
   secure: true,
   auth: {
-    user: "mrluyen2k@gmail.com",
-    // pass: "cqkdmwferloolxrf",
-    pass: "vurdhjnovethuuxn",
+    auth: {
+      user: "chuberogt@gmail.com",
+      pass: "qzeiowlvzbxbdmqf",
+    },
   },
 });
 
 const sendMailService = async (to, subject, text) => {
   try {
     const mailOptions = {
-      from: "mrluyen2k@gmail.com",
+      from: "chuberogt@gmail.com",
       to: to,
       subject: subject,
       html: `Xin chào,<br>${text}`,
